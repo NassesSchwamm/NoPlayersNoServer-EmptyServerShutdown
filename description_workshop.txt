@@ -1,0 +1,23 @@
+[h1]NoPlayersNoServer (EmptyServerShutdown)[/h1]
+NoPlayersNoServer (EmptyServerShutdown) is a [b][u]server-side[/u][/b] utility mod for servers that automatically shuts down the server when no players are connected. This helps save resources and ensures your server doesn't run unnecessarily when empty.
+
+[hr][/hr]
+[h2]Features[/h2]
+[list]
+[*][b]Configurable shutdown timer:[/b] Set how long the server should wait before shutting down.
+[*][b]Configurable logging:[/b] Choose whether to see notifications in the server console, in-game chat, both, or neither.
+[*][b]Timer start modes:[/b] Choose whether the shutdown timer starts immediately on world load or only after the last player disconnects.
+
+[*][i][b]If I decide to (or you ask nicely - through Steam or github) i may be willing to add more features and configuration options to this mod in the future. For now tough everything stays as is.[/b][/i]
+[/list]
+[h2]Configuration[/h2]
+[list]
+[*][b]Shutdown Timer (Seconds):[/b] Default is 30 seconds. Range: 1 to 3600 seconds.
+[*][b]Logging Level:[/b] Off, Console (default), Chat, All.
+[*][b]Timer Start Mode:[/b] OnWorldLoad (default), OnLastPlayerDisconnect.
+[/list]
+[h2]Source Code[/h2]
+This mod is OPEN SOURCE and its source code can be found [url=https://github.com/NassesSchwamm/NoPlayersNoServer-EmptyServerShutdown][u]here[/u][/url]
+[hr][/hr]
+
+This mod is intended for dedicated servers (Main.dedServ). It will (and should) not affect single-player or hosted multiplayer games where the host is a player.

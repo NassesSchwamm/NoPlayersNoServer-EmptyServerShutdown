@@ -1,0 +1,76 @@
+Configs: {
+	NoPlayersNoServerConfig: {
+		DisplayName: No Players No Server Config
+
+		ShutdownTimerSeconds: {
+			Label: Shutdown Timer (Seconds)
+			Tooltip:
+				'''
+				The duration (in seconds) the server waits after the last player disconnects before shutting down.
+				Range: 1 to 3600 seconds.
+				'''
+		}
+
+		LoggingLevel: {
+			Label: Logging Level
+			Tooltip:
+				'''
+				Controls where the shutdown notifications are displayed.
+				Values:
+				0: Off: No messages.
+				1: Console: Messages only in the server console.
+				2: Chat: Messages only in the in-game chat.
+				3: All: Messages in both console and chat.
+				'''
+		}
+
+		StartMode: {
+			Label: Timer Start Mode
+			Tooltip:
+				'''
+				Determines when the empty server check begins.
+				Values:
+				0: OnWorldLoad: The timer starts as soon as the world loads, even if no player has ever connected.
+				1: OnLastPlayerDisconnect: The timer only starts after at least one player has connected and then the server becomes empty.
+				'''
+		}
+	}
+
+	LogMode: {
+		Tooltip: ""
+
+		Off: {
+			Label: Off
+			Tooltip: ""
+		}
+
+		Console: {
+			Label: Console
+			Tooltip: ""
+		}
+
+		Chat: {
+			Label: Chat
+			Tooltip: ""
+		}
+
+		All: {
+			Label: All
+			Tooltip: ""
+		}
+	}
+
+	TimerStartMode: {
+		Tooltip: ""
+
+		OnWorldLoad: {
+			Label: On World Load
+			Tooltip: ""
+		}
+
+		OnLastPlayerDisconnect: {
+			Label: On Last Player Disconnect
+			Tooltip: ""
+		}
+	}
+}

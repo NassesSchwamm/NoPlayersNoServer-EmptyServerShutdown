@@ -1,0 +1,4 @@
+displayName = NoPlayersNoServer (EmptyServerShutdown)
+author = NassesSchwamm
+version = 1.0
+side = Server
