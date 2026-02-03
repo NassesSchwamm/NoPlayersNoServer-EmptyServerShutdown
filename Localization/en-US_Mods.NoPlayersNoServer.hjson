@@ -34,6 +34,11 @@ Configs: {
 				1: OnLastPlayerDisconnect: The timer only starts after at least one player has connected and then the server becomes empty.
 				'''
 		}
+
+		DebugLogging: {
+			Label: Debug Logging
+			Tooltip: Enables verbose debug logging to the server console for troubleshooting.
+		}
 	}
 
 	LogMode: {

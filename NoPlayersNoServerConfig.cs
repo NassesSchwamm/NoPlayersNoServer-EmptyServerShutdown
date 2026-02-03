@@ -38,5 +38,10 @@ namespace NoPlayersNoServer
 		[DefaultValue(TimerStartMode.OnWorldLoad)]
 		[DrawTicks]
 		public TimerStartMode StartMode;
+
+		[Label("Debug Logging")]
+		[Tooltip("Enables verbose debug logging to the server console for troubleshooting.")]
+		[DefaultValue(false)]
+		public bool DebugLogging;
 	}
 }

@@ -24,11 +24,13 @@ namespace NoPlayersNoServer
 		private volatile int cachedShutdownTimerSeconds = 30;
 		private volatile TimerStartMode cachedStartMode = TimerStartMode.OnWorldLoad;
 		private volatile LogMode cachedLogMode = LogMode.Console;
+		private volatile bool cachedDebugLogging = false;
 
 		public override void OnWorldLoad()
 		{
 			if (Main.dedServ)
 			{
+				DebugLog("OnWorldLoad: initializing state.");
 				hasPlayerConnectedOnce = false;
 				isShutdownScheduled = false;
 				isShuttingDown = false;
@@ -41,6 +43,7 @@ namespace NoPlayersNoServer
 
 		public override void OnWorldUnload()
 		{
+			DebugLog("OnWorldUnload: stopping timer and clearing state.");
 			StopTimer();
 			shutdownDeadlineUtcTicks = 0;
 			isShutdownScheduled = false;
@@ -56,8 +59,10 @@ namespace NoPlayersNoServer
 			UpdateConfigCache();
 			UpdateActivePlayerCount();
 
+			DebugLog($"PostUpdateEverything: activePlayers={cachedActivePlayers}, scheduled={isShutdownScheduled}, connectedOnce={hasPlayerConnectedOnce}.");
 			if (cachedActivePlayers > 0)
 			{
+				DebugLog("PostUpdateEverything: player(s) active; marking connectedOnce and cancelling shutdown if scheduled.");
 				hasPlayerConnectedOnce = true;
 				if (isShutdownScheduled)
 				{
@@ -70,11 +75,16 @@ namespace NoPlayersNoServer
 		{
 			if (checkTimer == null)
 			{
+				DebugLog("StartTimer: creating and starting 1s timer.");
 				checkTimer = new System.Timers.Timer(1000);
 				checkTimer.Elapsed += OnCheckTimerElapsed;
 				checkTimer.AutoReset = true;
 				checkTimer.Start();
 				Log("Player activity monitor started.", allowChat: false);
+			}
+			else
+			{
+				DebugLog("StartTimer: timer already running.");
 			}
 		}
 
@@ -82,21 +92,32 @@ namespace NoPlayersNoServer
 		{
 			if (checkTimer != null)
 			{
+				DebugLog("StopTimer: stopping and disposing timer.");
 				checkTimer.Stop();
 				checkTimer.Dispose();
 				checkTimer = null;
 				Log("Player activity monitor stopped.", allowChat: false);
+			}
+			else
+			{
+				DebugLog("StopTimer: timer already null.");
 			}
 		}
 
 		private void UpdateConfigCache()
 		{
 			var config = ModContent.GetInstance<NoPlayersNoServerConfig>();
-			if (config == null) return;
+			if (config == null)
+			{
+				DebugLog("UpdateConfigCache: config instance is null.");
+				return;
+			}
 
 			cachedShutdownTimerSeconds = config.ShutdownTimerSeconds;
 			cachedStartMode = config.StartMode;
 			cachedLogMode = config.LoggingLevel;
+			cachedDebugLogging = config.DebugLogging;
+			DebugLog($"UpdateConfigCache: shutdownSeconds={cachedShutdownTimerSeconds}, startMode={cachedStartMode}, logMode={cachedLogMode}, debug={cachedDebugLogging}.");
 		}
 
 		private void UpdateActivePlayerCount()
@@ -111,10 +132,12 @@ namespace NoPlayersNoServer
 			}
 
 			cachedActivePlayers = activePlayers;
+			DebugLog($"UpdateActivePlayerCount: activePlayers={cachedActivePlayers}.");
 		}
 
 		private void CancelShutdown(string reason)
 		{
+			DebugLog($"CancelShutdown: reason='{reason}'.");
 			isShutdownScheduled = false;
 			Interlocked.Exchange(ref shutdownDeadlineUtcTicks, 0);
 			Interlocked.Exchange(ref lastAnnouncedSeconds, -1);
@@ -154,6 +177,9 @@ namespace NoPlayersNoServer
 			if (!Main.dedServ) return;
 			if (isShuttingDown || Netplay.Disconnect) return;
 
+			UpdateConfigCache();
+			UpdateActivePlayerCount();
+			DebugLog($"OnCheckTimerElapsed: activePlayers={cachedActivePlayers}, scheduled={isShutdownScheduled}, connectedOnce={hasPlayerConnectedOnce}.");
 			if (cachedActivePlayers > 0)
 			{
 				if (isShutdownScheduled)
@@ -166,11 +192,13 @@ namespace NoPlayersNoServer
 
 			if (cachedStartMode == TimerStartMode.OnLastPlayerDisconnect && !hasPlayerConnectedOnce)
 			{
+				DebugLog("OnCheckTimerElapsed: startMode=OnLastPlayerDisconnect and no player has connected yet; skipping schedule.");
 				return;
 			}
 
 			if (!isShutdownScheduled)
 			{
+				DebugLog("OnCheckTimerElapsed: scheduling shutdown.");
 				isShutdownScheduled = true;
 				var deadlineTicks = DateTime.UtcNow.AddSeconds(cachedShutdownTimerSeconds).Ticks;
 				Interlocked.Exchange(ref shutdownDeadlineUtcTicks, deadlineTicks);
@@ -184,15 +212,18 @@ namespace NoPlayersNoServer
 			long currentDeadlineTicks = Interlocked.Read(ref shutdownDeadlineUtcTicks);
 			if (currentDeadlineTicks == 0)
 			{
+				DebugLog("OnCheckTimerElapsed: deadline ticks were 0; recalculating.");
 				currentDeadlineTicks = DateTime.UtcNow.AddSeconds(cachedShutdownTimerSeconds).Ticks;
 				Interlocked.Exchange(ref shutdownDeadlineUtcTicks, currentDeadlineTicks);
 			}
 
 			var remaining = new DateTime(currentDeadlineTicks, DateTimeKind.Utc) - DateTime.UtcNow;
 			int remainingSeconds = (int)Math.Ceiling(remaining.TotalSeconds);
+			DebugLog($"OnCheckTimerElapsed: remainingSeconds={remainingSeconds}.");
 
 			if (remainingSeconds <= 0)
 			{
+				DebugLog("OnCheckTimerElapsed: timer expired; shutting down.");
 				Log("Timer expired. Shutting down...", allowChat: false);
 				isShuttingDown = true;
 				Netplay.Disconnect = true;
@@ -206,9 +237,16 @@ namespace NoPlayersNoServer
 			int lastAnnounced = Interlocked.CompareExchange(ref lastAnnouncedSeconds, lastAnnouncedSeconds, lastAnnouncedSeconds);
 			if ((remainingSeconds % 10 == 0 || remainingSeconds <= 5) && remainingSeconds != lastAnnounced)
 			{
+				DebugLog($"OnCheckTimerElapsed: announcing remainingSeconds={remainingSeconds}.");
 				Interlocked.Exchange(ref lastAnnouncedSeconds, remainingSeconds);
 				Log($"Shutdown in {remainingSeconds} seconds...", allowChat: false);
 			}
+		}
+
+		private void DebugLog(string message)
+		{
+			if (!cachedDebugLogging) return;
+			Console.WriteLine($"[NoPlayersNoServer][Debug] {message}");
 		}
 	}
 }

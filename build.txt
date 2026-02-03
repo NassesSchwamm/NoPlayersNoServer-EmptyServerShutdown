@@ -1,5 +1,4 @@
 displayName = NoPlayersNoServer (EmptyServerShutdown)
 author = NassesSchwamm
-version = 1.1
+version = 1.2
 side = Server
-
